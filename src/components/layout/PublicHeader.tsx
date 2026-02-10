@@ -8,7 +8,8 @@ import {
   Fingerprint, 
   FileText,
   SignIn,
-  UserPlus
+  UserPlus,
+  MagnifyingGlass
 } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 import {
@@ -81,6 +82,10 @@ export function PublicHeader() {
 
           {/* Auth Buttons */}
           <div className="hidden lg:flex items-center gap-3">
+            <Button variant="ghost" onClick={() => navigate('/search')} className="gap-2">
+              <MagnifyingGlass className="w-4 h-4" />
+              Global Search
+            </Button>
             <Button variant="ghost" onClick={() => navigate('/signin')} className="gap-2">
               <SignIn className="w-4 h-4" />
               Sign In
@@ -134,6 +139,9 @@ export function PublicHeader() {
                 )
               ))}
               <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border">
+                <Button variant="ghost" onClick={() => { navigate('/search'); setMobileMenuOpen(false); }}>
+                  Global Search
+                </Button>
                 <Button variant="ghost" onClick={() => { navigate('/signin'); setMobileMenuOpen(false); }}>
                   Sign In
                 </Button>

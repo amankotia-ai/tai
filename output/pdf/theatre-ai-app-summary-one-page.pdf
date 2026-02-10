@@ -1,0 +1,73 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+6 0 obj
+<< /Length 3983 >>
+stream
+BT /F2 16.00 Tf 1 0 0 1 54.00 758.00 Tm (theatre.ai App Summary \(One Page\)) Tj ET
+BT /F1 9.50 Tf 1 0 0 1 54.00 738.00 Tm (Generated from repository evidence on 2026-02-06 - scope includes README, src/, docs/, and) Tj ET
+BT /F1 9.50 Tf 1 0 0 1 54.00 726.00 Tm (config files.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 54.00 710.00 Tm (What it is) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 54.00 696.00 Tm (theatre.ai is a React + TypeScript web app for managing AI-era performance rights in entertainment.) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 54.00 684.00 Tm (It combines CastID-style verification, consent-controlled digital assets, licensing, and) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 54.00 672.00 Tm (collaboration workflows in a single frontend experience.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 54.00 658.00 Tm (Who it is for) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 54.00 644.00 Tm (Primary persona: actors and artists who need to protect and license voice, likeness, and motion) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 54.00 632.00 Tm (rights.) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 54.00 620.00 Tm (Also represented in product flows: studios, agencies, and legal users via role-based onboarding.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 54.00 606.00 Tm (What it does) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 592.00 Tm (- Role-based onboarding and sign-in with identity and professional verification states.) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 580.00 Tm (- Vault workflow for voice/face/motion uploads, per-asset visibility, consent matrix controls,) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 568.00 Tm (  and usage logs.) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 556.00 Tm (- Search and discovery across actors, studios, agencies, and casting calls with filter panels.) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 544.00 Tm (- Messaging center with requests, secure attachment presets, referenced assets, and) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 532.00 Tm (  conversation states.) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 520.00 Tm (- Contracts workspace with status filters, clause highlights, and mock license certificate) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 508.00 Tm (  generation.) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 496.00 Tm (- Payments flow showing studio pay-in, platform fee split, actor payout statuses, and) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 484.00 Tm (  downloadable receipts.) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 472.00 Tm (- Feed and network areas for posts, communities, events, and professional connection) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 460.00 Tm (  management.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 54.00 446.00 Tm (How it works \(repo evidence only\)) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 432.00 Tm (- Frontend SPA: Vite + React + TypeScript entrypoint at src/main.tsx and route graph in) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 420.00 Tm (  src/App.tsx.) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 408.00 Tm (- Routing: react-router-dom with public pages plus dashboard and canonical route aliases.) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 396.00 Tm (- UI composition: shared layout components \(DashboardLayout, DashboardTopNav\) and) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 384.00 Tm (  shadcn-ui/Tailwind primitives.) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 372.00 Tm (- State/data layer: src/lib/store.ts uses localStorage helpers and in-repo mock datasets.) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 360.00 Tm (- Data flow: user actions update component state, store helpers persist to localStorage, UI) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 348.00 Tm (  re-renders with toast feedback.) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 336.00 Tm (- Backend API services, server runtime, and production database: Not found in repo.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 54.00 322.00 Tm (How to run \(minimal\)) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 308.00 Tm (1. Install Node.js and npm \(README lists this prerequisite\).) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 296.00 Tm (2. From repo root, install dependencies: npm i) Tj ET
+BT /F1 9.60 Tf 1 0 0 1 62.00 284.00 Tm (3. Start dev server: npm run dev \(vite.config.ts sets port 8080\).) Tj ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000000321 00000 n 
+0000000396 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+4430
+%%EOF

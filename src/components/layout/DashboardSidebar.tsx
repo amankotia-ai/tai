@@ -1,28 +1,29 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  House, 
-  Storefront, 
-  Vault, 
-  FileText, 
-  Gear, 
+import {
+  House,
+  Storefront,
+  Vault,
+  FileText,
+  Gear,
+  CreditCard,
   SignOut,
-  ShieldCheck,
-  CaretLeft,
-  CaretRight,
-  Bell
+  MagnifyingGlass,
+  ChatCircle
 } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { storage } from '@/lib/store';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { label: 'Dashboard', href: '/dashboard', icon: House },
-  { label: 'Marketplace', href: '/dashboard/marketplace', icon: Storefront },
-  { label: 'Biometrics Vault', href: '/dashboard/vault', icon: Vault },
-  { label: 'Contracts', href: '/dashboard/contracts', icon: FileText },
-  { label: 'Settings', href: '/dashboard/settings', icon: Gear },
+  { label: 'Home', href: '/dashboard', icon: House },
+  { label: 'Search', href: '/dashboard/search', icon: MagnifyingGlass },
+  { label: 'Messages', href: '/chat', icon: ChatCircle },
+  { label: 'Projects', href: '/dashboard/marketplace', icon: Storefront },
+  { label: 'Vault', href: '/vault', icon: Vault },
+  { label: 'Contracts', href: '/contracts', icon: FileText },
+  { label: 'Payments', href: '/payments', icon: CreditCard },
+  { label: 'Settings', href: '/settings', icon: Gear },
 ];
 
 export function DashboardSidebar() {
@@ -30,99 +31,104 @@ export function DashboardSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const user = storage.getUser();
-  const pendingRequests = storage.getLicenseRequests().filter(r => r.status === 'pending').length;
 
   const handleSignOut = () => {
     storage.clearAll();
     navigate('/');
   };
 
+  // Split nav items to add separator before Settings
+  const mainNavItems = navItems.slice(0, -1);
+  const settingsItem = navItems[navItems.length - 1];
+
   return (
-    <aside 
+    <aside
       className={cn(
-        "fixed left-0 top-0 bottom-0 z-40 flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300",
-        collapsed ? "w-16" : "w-64"
+        "fixed left-0 top-0 bottom-0 z-40 flex flex-col bg-background border-r border-border/40 transition-all duration-300",
+        collapsed ? "w-16" : "w-56"
       )}
     >
       {/* Logo */}
       <div className={cn(
-        "flex items-center h-16 px-4 border-b border-sidebar-border",
+        "flex items-center h-12 px-4 border-b border-border/40",
         collapsed ? "justify-center" : "gap-2"
       )}>
-        <ShieldCheck className="w-8 h-8 text-sidebar-primary flex-shrink-0" weight="duotone" />
         {!collapsed && (
-          <span className="text-lg font-bold tracking-tight text-sidebar-foreground">
-            theatre<span className="text-sidebar-primary">.ai</span>
+          <span className="text-[13px] font-semibold tracking-tight text-foreground">
+            theatre.ai
           </span>
+        )}
+        {collapsed && (
+          <span className="text-sm font-semibold text-foreground">t.</span>
         )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-2 space-y-1">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.href;
-          return (
-            <Link
-              key={item.label}
-              to={item.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative",
-                isActive 
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground" 
-                  : "text-sidebar-foreground hover:bg-sidebar-accent",
-                collapsed && "justify-center px-2"
-              )}
-            >
-              <item.icon className="w-5 h-5 flex-shrink-0" weight={isActive ? "fill" : "regular"} />
-              {!collapsed && <span className="font-medium">{item.label}</span>}
-              {item.label === 'Biometrics Vault' && pendingRequests > 0 && (
-                <Badge 
-                  className={cn(
-                    "bg-accent text-accent-foreground text-xs",
-                    collapsed ? "absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center" : "ml-auto"
-                  )}
-                >
-                  {pendingRequests}
-                </Badge>
-              )}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 py-3 px-2">
+        <div className="space-y-0.5">
+          {mainNavItems.map((item) => {
+            const isActive = location.pathname === item.href;
+            return (
+              <Link
+                key={item.label}
+                to={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-[13px]",
+                  isActive
+                    ? "bg-muted text-foreground font-medium"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                  collapsed && "justify-center px-2"
+                )}
+              >
+                <item.icon className="w-[18px] h-[18px] flex-shrink-0" weight={isActive ? "fill" : "regular"} />
+                {!collapsed && <span>{item.label}</span>}
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Separator before Settings */}
+        <div className="my-3 mx-3 border-t border-border/40" />
+
+        <Link
+          to={settingsItem.href}
+          className={cn(
+            "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-[13px]",
+            location.pathname === settingsItem.href
+              ? "bg-muted text-foreground font-medium"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+            collapsed && "justify-center px-2"
+          )}
+        >
+          <settingsItem.icon className="w-[18px] h-[18px] flex-shrink-0" weight={location.pathname === settingsItem.href ? "fill" : "regular"} />
+          {!collapsed && <span>{settingsItem.label}</span>}
+        </Link>
       </nav>
 
       {/* User Section */}
       <div className={cn(
-        "border-t border-sidebar-border p-4",
+        "border-t border-border/40 p-3",
         collapsed && "px-2"
       )}>
         {!collapsed && user && (
-          <div className="mb-3 px-2">
-            <p className="text-sm font-medium text-sidebar-foreground truncate">{user.name}</p>
+          <div className="mb-2 px-2">
+            <p className="text-[13px] font-medium text-foreground truncate">{user.name}</p>
             <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
           </div>
         )}
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
+          size="sm"
           className={cn(
-            "w-full text-sidebar-foreground hover:bg-sidebar-accent",
+            "w-full text-muted-foreground hover:text-foreground hover:bg-muted/50 text-[13px]",
             collapsed ? "px-2" : "justify-start gap-2"
           )}
           onClick={handleSignOut}
         >
-          <SignOut className="w-5 h-5" />
+          <SignOut className="w-[18px] h-[18px]" />
           {!collapsed && "Sign Out"}
         </Button>
       </div>
-
-      {/* Collapse Toggle */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-sidebar border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent"
-        onClick={() => setCollapsed(!collapsed)}
-      >
-        {collapsed ? <CaretRight className="w-4 h-4" /> : <CaretLeft className="w-4 h-4" />}
-      </Button>
     </aside>
   );
 }
