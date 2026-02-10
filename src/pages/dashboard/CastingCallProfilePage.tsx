@@ -5,7 +5,6 @@ import {
   CalendarBlank,
   CheckCircle,
   Clock,
-  CurrencyDollar,
   FilmStrip,
   Globe,
   MapPin,
@@ -255,29 +254,25 @@ export default function CastingCallProfilePage() {
             </Card>
 
             <Card className="rounded-3xl border border-[#ECECEC] bg-white p-5">
-              <h3 className="text-[13px] font-semibold text-foreground">Commercial Terms</h3>
+              <h3 className="text-[13px] font-semibold text-foreground">Timing</h3>
               <div className="mt-3 divide-y divide-dashed divide-[#ECECEC] text-[11px] text-muted-foreground">
                 <div className="flex items-center justify-between py-2">
-                  <span className="inline-flex items-center gap-1.5"><CurrencyDollar className="size-3.5" /> Budget</span>
-                  <span className="font-inter-numeric tabular-nums text-foreground">{castingCall.budget}</span>
+                  <span className="inline-flex items-center gap-1.5"><Clock className="size-3.5" /> Deadline</span>
+                  <span className="font-inter-numeric tabular-nums text-foreground">{deadlineDate.toLocaleDateString()}</span>
                 </div>
                 <div className="flex items-center justify-between py-2">
-                  <span>Contract</span>
-                  <span className="text-foreground">{callMeta.contractType}</span>
+                  <span>Status</span>
+                  <span className="text-foreground">{deadlineStatus}</span>
                 </div>
                 <div className="flex items-center justify-between py-2">
-                  <span>Commitment</span>
-                  <span className="text-foreground">{callMeta.commitment}</span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span>Start Window</span>
-                  <span className="text-foreground">{callMeta.startWindow}</span>
+                  <span>Posted</span>
+                  <span className="font-inter-numeric tabular-nums text-foreground">{new Date(callMeta.postedAt).toLocaleDateString()}</span>
                 </div>
               </div>
             </Card>
           </div>
 
-          <div className="order-1 space-y-4 xl:order-2">
+          <div className="order-1 xl:order-2">
             <Card className="rounded-3xl border border-[#ECECEC] bg-white p-5 md:p-6">
               <div className="mb-4 flex flex-wrap items-center gap-2">
                 <div className="flex size-9 items-center justify-center rounded-xl bg-[#D61D1F]/10 text-[#D61D1F]">
@@ -294,100 +289,101 @@ export default function CastingCallProfilePage() {
                 <span className="inline-flex items-center gap-1.5"><CalendarBlank className="size-4" /> {deadlineDate.toLocaleDateString()}</span>
               </div>
 
-            </Card>
-
-            <Card className="rounded-3xl border border-[#ECECEC] bg-white p-5">
-              <div className="mb-3 flex items-center gap-2">
-                <Sparkle className="size-4 text-[#D61D1F]" weight="fill" />
-                <h2 className="text-[14px] font-semibold text-foreground">Role Overview</h2>
-              </div>
-              <p className="text-[13px] leading-6 text-muted-foreground text-pretty">{castingCall.description}</p>
-
-              <div className="mt-4 space-y-2">
-                {callMeta.responsibilities.map((item) => (
-                  <div key={item} className="flex items-start gap-2 text-[12px] text-muted-foreground">
-                    <CheckCircle className="mt-0.5 size-4 shrink-0 text-emerald-600" weight="fill" />
-                    <span className="text-pretty">{item}</span>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <Card className="rounded-3xl border border-[#ECECEC] bg-white p-5">
-                <h2 className="text-[14px] font-semibold text-foreground">Requirements</h2>
-                <div className="mt-3 space-y-2">
-                  {castingCall.requirements.map((requirement) => (
-                    <div key={requirement} className="flex items-center gap-2 text-[12px] text-muted-foreground">
-                      <CheckCircle className="size-4 text-emerald-600" weight="fill" />
-                      <span>{requirement}</span>
-                    </div>
-                  ))}
+              <section className="mt-6 border-t border-[#ECECEC] pt-5">
+                <div className="mb-3 flex items-center gap-2">
+                  <Sparkle className="size-4 text-[#D61D1F]" weight="fill" />
+                  <h2 className="text-[14px] font-semibold text-foreground">Role Overview</h2>
                 </div>
-              </Card>
+                <p className="text-[13px] leading-6 text-muted-foreground text-pretty">{castingCall.description}</p>
 
-              <Card className="rounded-3xl border border-[#ECECEC] bg-white p-5">
-                <h2 className="text-[14px] font-semibold text-foreground">Preferred Profile</h2>
-                <div className="mt-3 space-y-2">
-                  {callMeta.preferredProfile.map((item) => (
+                <div className="mt-4 space-y-2">
+                  {callMeta.responsibilities.map((item) => (
                     <div key={item} className="flex items-start gap-2 text-[12px] text-muted-foreground">
-                      <UsersThree className="mt-0.5 size-4 shrink-0" />
+                      <CheckCircle className="mt-0.5 size-4 shrink-0 text-emerald-600" weight="fill" />
                       <span className="text-pretty">{item}</span>
                     </div>
                   ))}
                 </div>
-              </Card>
-            </div>
+              </section>
 
-            <Card className="rounded-3xl border border-[#ECECEC] bg-white p-5">
-              <div className="mb-3 flex items-center gap-2">
-                <ShieldCheck className="size-4 text-[#D61D1F]" weight="fill" />
-                <h2 className="text-[14px] font-semibold text-foreground">Rights & Licensing</h2>
-              </div>
-              <div className="mb-3 flex flex-wrap gap-1.5">
-                {callMeta.rightsScope.map((scope) => (
-                  <Badge key={scope} variant="outline" className="border-[#ECECEC] bg-white text-[10px] text-muted-foreground">
-                    {scope}
-                  </Badge>
-                ))}
-              </div>
-              <div className="space-y-2">
-                {callMeta.protections.map((item) => (
-                  <div key={item} className="flex items-start gap-2 text-[12px] text-muted-foreground">
-                    <CheckCircle className="mt-0.5 size-4 shrink-0 text-emerald-600" weight="fill" />
-                    <span className="text-pretty">{item}</span>
+              <section className="mt-6 border-t border-[#ECECEC] pt-5">
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                  <div>
+                    <h2 className="text-[14px] font-semibold text-foreground">Requirements</h2>
+                    <div className="mt-3 space-y-2">
+                      {castingCall.requirements.map((requirement) => (
+                        <div key={requirement} className="flex items-center gap-2 text-[12px] text-muted-foreground">
+                          <CheckCircle className="size-4 text-emerald-600" weight="fill" />
+                          <span>{requirement}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
-              </div>
-            </Card>
 
-            <Card className="rounded-3xl border border-[#ECECEC] bg-white p-5">
-              <h2 className="text-[14px] font-semibold text-foreground">Deliverables & Process</h2>
-              <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                  <h3 className="text-[12px] font-semibold text-foreground">Expected Deliverables</h3>
-                  <div className="mt-2 space-y-2">
-                    {callMeta.deliverables.map((item) => (
-                      <div key={item} className="flex items-start gap-2 text-[11px] text-muted-foreground">
-                        <CheckCircle className="mt-0.5 size-3.5 shrink-0 text-emerald-600" weight="fill" />
-                        <span className="text-pretty">{item}</span>
-                      </div>
-                    ))}
+                  <div>
+                    <h2 className="text-[14px] font-semibold text-foreground">Preferred Profile</h2>
+                    <div className="mt-3 space-y-2">
+                      {callMeta.preferredProfile.map((item) => (
+                        <div key={item} className="flex items-start gap-2 text-[12px] text-muted-foreground">
+                          <UsersThree className="mt-0.5 size-4 shrink-0" />
+                          <span className="text-pretty">{item}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
+              </section>
 
-                <div>
-                  <h3 className="text-[12px] font-semibold text-foreground">Selection Timeline</h3>
-                  <div className="mt-2 space-y-2">
-                    {callMeta.timeline.map((step) => (
-                      <div key={step.label} className="rounded-xl border border-[#ECECEC] bg-[#F9F9F9] p-2.5">
-                        <p className="text-[11px] font-medium text-foreground">{step.label}</p>
-                        <p className="mt-0.5 text-[10px] text-muted-foreground text-pretty">{step.detail}</p>
-                      </div>
-                    ))}
+              <section className="mt-6 border-t border-[#ECECEC] pt-5">
+                <div className="mb-3 flex items-center gap-2">
+                  <ShieldCheck className="size-4 text-[#D61D1F]" weight="fill" />
+                  <h2 className="text-[14px] font-semibold text-foreground">Rights & Licensing</h2>
+                </div>
+                <div className="mb-3 flex flex-wrap gap-1.5">
+                  {callMeta.rightsScope.map((scope) => (
+                    <Badge key={scope} variant="outline" className="border-[#ECECEC] bg-white text-[10px] text-muted-foreground">
+                      {scope}
+                    </Badge>
+                  ))}
+                </div>
+                <div className="space-y-2">
+                  {callMeta.protections.map((item) => (
+                    <div key={item} className="flex items-start gap-2 text-[12px] text-muted-foreground">
+                      <CheckCircle className="mt-0.5 size-4 shrink-0 text-emerald-600" weight="fill" />
+                      <span className="text-pretty">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="mt-6 border-t border-[#ECECEC] pt-5">
+                <h2 className="text-[14px] font-semibold text-foreground">Deliverables & Process</h2>
+                <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div>
+                    <h3 className="text-[12px] font-semibold text-foreground">Expected Deliverables</h3>
+                    <div className="mt-2 space-y-2">
+                      {callMeta.deliverables.map((item) => (
+                        <div key={item} className="flex items-start gap-2 text-[11px] text-muted-foreground">
+                          <CheckCircle className="mt-0.5 size-3.5 shrink-0 text-emerald-600" weight="fill" />
+                          <span className="text-pretty">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-[12px] font-semibold text-foreground">Selection Timeline</h3>
+                    <div className="mt-2 space-y-2.5">
+                      {callMeta.timeline.map((step) => (
+                        <div key={step.label} className="border-l-2 border-[#ECECEC] pl-3">
+                          <p className="text-[11px] font-medium text-foreground">{step.label}</p>
+                          <p className="mt-0.5 text-[10px] text-muted-foreground text-pretty">{step.detail}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </section>
             </Card>
           </div>
 
@@ -410,24 +406,6 @@ export default function CastingCallProfilePage() {
                 <div className="flex items-center gap-2">
                   <CheckCircle className="size-4 text-emerald-600" weight="fill" />
                   <span>Availability confirmed for timeline windows</span>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="rounded-3xl border border-[#ECECEC] bg-white p-5">
-              <h3 className="text-[13px] font-semibold text-foreground">Timing</h3>
-              <div className="mt-3 divide-y divide-dashed divide-[#ECECEC] text-[11px] text-muted-foreground">
-                <div className="flex items-center justify-between py-2">
-                  <span className="inline-flex items-center gap-1.5"><Clock className="size-3.5" /> Deadline</span>
-                  <span className="font-inter-numeric tabular-nums text-foreground">{deadlineDate.toLocaleDateString()}</span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span>Status</span>
-                  <span className="text-foreground">{deadlineStatus}</span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span>Posted</span>
-                  <span className="font-inter-numeric tabular-nums text-foreground">{new Date(callMeta.postedAt).toLocaleDateString()}</span>
                 </div>
               </div>
             </Card>

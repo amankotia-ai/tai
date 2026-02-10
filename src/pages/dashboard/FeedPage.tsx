@@ -5,7 +5,6 @@ import {
   BookmarkSimple,
   Briefcase,
   Buildings,
-  CalendarBlank,
   CaretRight,
   ChartPieSlice,
   ChatCircle,
@@ -19,7 +18,6 @@ import {
   Image,
   List,
   LinkSimple,
-  MapPin,
   MagnifyingGlass,
   Microphone,
   NewspaperClipping,
@@ -59,7 +57,6 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import {
   mockCommunities,
   storage,
-  mockEvents,
   mockFeedPosts,
   FeedPost,
 } from '@/lib/store';
@@ -1083,52 +1080,6 @@ function PostPublishPreviewModal({
   );
 }
 
-function EventsSection({ title, events }: { title: string; events: typeof mockEvents }) {
-  return (
-    <Card className="rounded-3xl border border-[#ECECEC] bg-white p-5">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <CalendarBlank className="size-4 text-[#0052FF]" weight="fill" />
-          <h3 className="text-balance text-[13px] font-semibold text-foreground">{title}</h3>
-        </div>
-        <Link to="#" className="text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground">
-          See all
-        </Link>
-      </div>
-      <div className="space-y-2.5">
-        {events.map((event) => {
-          const eventDate = new Date(event.date);
-          const day = eventDate.getDate();
-          const month = eventDate.toLocaleDateString('en-US', { month: 'short' });
-
-          return (
-            <Link
-              key={event.id}
-              to="#"
-              className="group flex min-w-0 items-center gap-3 rounded-xl transition-colors"
-            >
-              <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-xl bg-muted/70 text-muted-foreground">
-                <span className="font-inter-numeric tabular-nums text-[15px] font-semibold leading-none text-foreground">{day}</span>
-                <span className="mt-0.5 text-[9px] font-medium uppercase">{month}</span>
-              </div>
-              <div className="min-w-0 flex-1">
-                <h4 className="line-clamp-1 text-balance text-[12px] font-medium leading-5 text-foreground transition-colors group-hover:text-[#0052FF]">
-                  {event.name}
-                </h4>
-                <div className="mt-0.5 flex items-center gap-1.5 text-pretty text-[10px] text-muted-foreground">
-                  <MapPin className="size-3" />
-                  <span className="truncate">{event.city}</span>
-                </div>
-              </div>
-              <CaretRight className="size-4 text-muted-foreground opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100" weight="bold" />
-            </Link>
-          );
-        })}
-      </div>
-    </Card>
-  );
-}
-
 function GroupsSection({ title, groups }: { title: string; groups: typeof mockCommunities }) {
   const groupItemIcons = [UsersThree, Buildings, Briefcase, UserCircle];
 
@@ -1175,7 +1126,6 @@ function GroupsSection({ title, groups }: { title: string; groups: typeof mockCo
 }
 
 export default function FeedPage() {
-  const publicEvents = mockEvents.filter((event) => !event.isAttending);
   const [posts, setPosts] = useState<FeedPost[]>(mockFeedPosts);
   const [previewPost, setPreviewPost] = useState<FeedPost | null>(null);
   const user = storage.getUser();
@@ -1255,7 +1205,6 @@ export default function FeedPage() {
         </div>
 
         <div className="hidden h-full w-72 flex-shrink-0 space-y-4 xl:block">
-          <EventsSection title="Upcoming Events" events={publicEvents.slice(0, 3)} />
           <GroupsSection title="Groups" groups={mockCommunities.slice(0, 3)} />
         </div>
       </div>

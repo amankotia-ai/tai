@@ -184,7 +184,15 @@ function StudioLeftRail({ name, type, location, trustScore, logoUrl }: { name: s
   );
 }
 
-function StudioRightRail({ outboundRequests, onOpenCollaboration, onCancel }: { outboundRequests: CollaborationRequest[]; onOpenCollaboration: () => void; onCancel: (request: CollaborationRequest) => void }) {
+function StudioRightRail({
+  outboundRequests,
+  onOpenCollaboration,
+  onOpenManageRequest,
+}: {
+  outboundRequests: CollaborationRequest[];
+  onOpenCollaboration: () => void;
+  onOpenManageRequest: (request: CollaborationRequest) => void;
+}) {
   return (
     <>
       <Card className="rounded-3xl border border-[#ECECEC] bg-white p-5">
@@ -205,11 +213,14 @@ function StudioRightRail({ outboundRequests, onOpenCollaboration, onCancel }: { 
                 <p className="mt-1 line-clamp-2 text-[10px] text-muted-foreground">{request.note || 'No note provided.'}</p>
                 <div className="mt-2 flex items-center justify-between gap-2">
                   <Badge className={cn('text-[10px] capitalize', REQUEST_STATUS_TONE[request.status])}>{request.status}</Badge>
-                  {request.status === 'pending' && (
-                    <Button size="sm" variant="outline" className="h-6 rounded-lg border-[#ECECEC] bg-white px-2 text-[10px] text-destructive" onClick={() => onCancel(request)}>
-                      Cancel
-                    </Button>
-                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-6 rounded-lg border-[#ECECEC] bg-white px-2 text-[10px]"
+                    onClick={() => onOpenManageRequest(request)}
+                  >
+                    Manage
+                  </Button>
                 </div>
               </div>
             ))}
@@ -259,6 +270,8 @@ export default function StudioProfilePage() {
   const [collaborationNote, setCollaborationNote] = useState('');
 
   const [cancelCandidate, setCancelCandidate] = useState<CollaborationRequest | null>(null);
+  const [activeRequest, setActiveRequest] = useState<CollaborationRequest | null>(null);
+  const [manageStatus, setManageStatus] = useState<CollaborationRequest['status']>('pending');
   const [outboundRequests, setOutboundRequests] = useState<CollaborationRequest[]>([
     {
       id: 'col-1',
@@ -331,8 +344,34 @@ export default function StudioProfilePage() {
   const cancelCollaboration = () => {
     if (!cancelCandidate) return;
     setOutboundRequests((current) => current.filter((request) => request.id !== cancelCandidate.id));
+    if (activeRequest?.id === cancelCandidate.id) {
+      setActiveRequest(null);
+    }
     toast.success(`Cancelled request: ${cancelCandidate.project}`);
     setCancelCandidate(null);
+  };
+
+  const openManageRequest = (request: CollaborationRequest) => {
+    setActiveRequest(request);
+    setManageStatus(request.status);
+  };
+
+  const saveRequestStatus = () => {
+    if (!activeRequest) return;
+
+    setOutboundRequests((current) =>
+      current.map((request) =>
+        request.id === activeRequest.id
+          ? {
+              ...request,
+              status: manageStatus,
+            }
+          : request,
+      ),
+    );
+
+    setActiveRequest((current) => (current ? { ...current, status: manageStatus } : current));
+    toast.success(`Updated status: ${activeRequest.project}`);
   };
 
   if (!studio) {
@@ -371,7 +410,11 @@ export default function StudioProfilePage() {
           <div className="hide-scrollbar h-full min-w-0 flex-1 overflow-y-auto pb-6 pr-1">
             <div className="space-y-4 lg:hidden">
               <StudioLeftRail name={studio.name} type={studio.type} location={studio.location} trustScore={trustScore} logoUrl={studio.logoUrl} />
-              <StudioRightRail outboundRequests={outboundRequests} onOpenCollaboration={() => setIsCollabModalOpen(true)} onCancel={(request) => setCancelCandidate(request)} />
+              <StudioRightRail
+                outboundRequests={outboundRequests}
+                onOpenCollaboration={() => setIsCollabModalOpen(true)}
+                onOpenManageRequest={openManageRequest}
+              />
             </div>
 
             <div className="space-y-4 lg:mt-0">
@@ -407,86 +450,102 @@ export default function StudioProfilePage() {
                 </Card>
               )}
 
-              <Card className="rounded-3xl border border-[#ECECEC] bg-white p-5">
-              <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <MonitorPlay className="size-5 text-muted-foreground" weight="duotone" />
-                  <h2 className="text-[14px] font-semibold text-foreground">Featured Projects</h2>
-                </div>
-                <Link to="/dashboard/search">
-                  <Button size="sm" variant="outline" className="h-7 rounded-lg bg-white px-2 text-[10px] hover:bg-[#F5F6F8] hover:text-foreground">View All</Button>
-                </Link>
-              </div>
-
-              <div className="divide-y divide-dashed divide-[#ECECEC]">
-                {featuredProjects.map((project) => (
-                  <div key={project.id} className="flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0">
-                    <div className="flex min-w-0 items-start gap-3">
-                      <div className="h-11 w-8 shrink-0 overflow-hidden rounded-md bg-[#F3F4F6]">
-                        {project.imageUrl ? (
-                          <img src={project.imageUrl} alt={`${project.title} poster`} className="size-full object-cover" loading="lazy" />
-                        ) : null}
+              <Card className="overflow-hidden rounded-3xl border border-[#ECECEC] bg-white p-0">
+                <section className="p-5 md:p-6">
+                  <div className="mb-5 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="flex size-8 items-center justify-center rounded-lg bg-[#F5F6F8] text-muted-foreground">
+                        <MonitorPlay className="size-4" weight="duotone" />
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-[14px] font-semibold text-foreground">{project.title}</p>
-                        <p className="mt-1 text-pretty text-[11px] text-muted-foreground">{project.subtitle}</p>
+                      <div>
+                        <h2 className="text-[14px] font-semibold text-foreground">Featured Projects</h2>
+                        <p className="text-[10px] text-muted-foreground">Current slate highlights from this studio.</p>
                       </div>
                     </div>
-                    <Badge className="bg-[#F8F9FA] text-[10px] text-muted-foreground">
-                      {project.status}
-                    </Badge>
+                    <Link to="/dashboard/search">
+                      <Button size="sm" variant="outline" className="h-8 rounded-lg border-[#ECECEC] bg-white px-2.5 text-[10px] hover:bg-[#F5F6F8] hover:text-foreground">View All</Button>
+                    </Link>
                   </div>
-                ))}
-              </div>
-            </Card>
 
-              <Card className="rounded-3xl border border-[#ECECEC] bg-white p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <CalendarBlank className="size-5 text-muted-foreground" weight="duotone" />
-                    <h2 className="text-[14px] font-semibold text-foreground">Open Casting Calls / Projects</h2>
-                  </div>
-                  <Link to="/dashboard/casting-calls" state={{ fromStudio }}>
-                    <Button size="sm" variant="outline" className="h-7 rounded-lg bg-white px-2 text-[10px] hover:bg-[#F5F6F8] hover:text-foreground">View All</Button>
-                  </Link>
-                </div>
-
-                {openCastingProjects.length === 0 ? (
-                  <p className="mt-4 text-[12px] text-muted-foreground">No open casting calls available right now.</p>
-                ) : (
-                  <div className="mt-3 divide-y divide-dashed divide-[#ECECEC]">
-                    {openCastingProjects.map((call) => (
-                      <Link
-                        key={call.id}
-                        to={`/dashboard/casting-calls/${call.id}`}
-                        state={{ fromStudio }}
-                        className="block rounded-lg py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="text-[13px] font-semibold text-foreground">{call.title}</p>
-                            <p className="text-[11px] text-muted-foreground">{call.studio} • {call.role}</p>
+                  <div className="space-y-2.5">
+                    {featuredProjects.map((project) => (
+                      <div key={project.id} className="flex items-start justify-between gap-3 rounded-2xl border border-[#ECECEC] bg-[#FCFCFC] p-3">
+                        <div className="flex min-w-0 items-start gap-3">
+                          <div className="h-12 w-9 shrink-0 overflow-hidden rounded-md bg-[#F3F4F6]">
+                            {project.imageUrl ? (
+                              <img src={project.imageUrl} alt={`${project.title} poster`} className="size-full object-cover" loading="lazy" />
+                            ) : null}
                           </div>
-                          <Badge className="bg-emerald-500/10 text-[10px] text-emerald-700">Open</Badge>
+                          <div className="min-w-0">
+                            <p className="text-[14px] font-semibold text-foreground">{project.title}</p>
+                            <p className="mt-1 text-pretty text-[11px] text-muted-foreground">{project.subtitle}</p>
+                          </div>
                         </div>
-                        <p className="mt-1 line-clamp-2 text-[10px] text-muted-foreground">{call.description}</p>
-                        <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
-                          <span className="font-medium text-foreground">{call.budget}</span>
-                          <span className="inline-flex items-center gap-1.5">
-                            <CalendarBlank className="size-3.5" />
-                            Deadline {DATE_LABEL.format(new Date(`${call.deadline}T00:00:00`))}
-                          </span>
-                        </div>
-                      </Link>
+                        <Badge className="border border-[#ECECEC] bg-white text-[10px] text-muted-foreground">
+                          {project.status}
+                        </Badge>
+                      </div>
                     ))}
                   </div>
-                )}
+                </section>
+
+                <section className="border-t border-[#ECECEC] p-5 md:p-6">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="flex size-8 items-center justify-center rounded-lg bg-[#F5F6F8] text-muted-foreground">
+                        <CalendarBlank className="size-4" weight="duotone" />
+                      </div>
+                      <div>
+                        <h2 className="text-[14px] font-semibold text-foreground">Open Casting Calls / Projects</h2>
+                        <p className="text-[10px] text-muted-foreground">Live opportunities accepting applications.</p>
+                      </div>
+                    </div>
+                    <Link to="/dashboard/casting-calls" state={{ fromStudio }}>
+                      <Button size="sm" variant="outline" className="h-8 rounded-lg border-[#ECECEC] bg-white px-2.5 text-[10px] hover:bg-[#F5F6F8] hover:text-foreground">View All</Button>
+                    </Link>
+                  </div>
+
+                  {openCastingProjects.length === 0 ? (
+                    <p className="mt-4 text-[12px] text-muted-foreground">No open casting calls available right now.</p>
+                  ) : (
+                    <div className="mt-4 space-y-2.5">
+                      {openCastingProjects.map((call) => (
+                        <Link
+                          key={call.id}
+                          to={`/dashboard/casting-calls/${call.id}`}
+                          state={{ fromStudio }}
+                          className="block rounded-2xl border border-[#ECECEC] bg-[#FCFCFC] p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-[13px] font-semibold text-foreground">{call.title}</p>
+                              <p className="text-[11px] text-muted-foreground">{call.studio} • {call.role}</p>
+                            </div>
+                            <Badge className="bg-emerald-500/10 text-[10px] text-emerald-700">Open</Badge>
+                          </div>
+                          <p className="mt-1 line-clamp-2 text-[10px] text-muted-foreground">{call.description}</p>
+                          <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
+                            <span className="font-medium text-foreground">{call.budget}</span>
+                            <span className="inline-flex items-center gap-1.5">
+                              <CalendarBlank className="size-3.5" />
+                              Deadline {DATE_LABEL.format(new Date(`${call.deadline}T00:00:00`))}
+                            </span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </section>
               </Card>
             </div>
           </div>
 
           <div className="hide-scrollbar hidden h-full w-72 flex-shrink-0 space-y-4 overflow-y-auto pb-6 xl:block">
-            <StudioRightRail outboundRequests={outboundRequests} onOpenCollaboration={() => setIsCollabModalOpen(true)} onCancel={(request) => setCancelCandidate(request)} />
+            <StudioRightRail
+              outboundRequests={outboundRequests}
+              onOpenCollaboration={() => setIsCollabModalOpen(true)}
+              onOpenManageRequest={openManageRequest}
+            />
           </div>
         </div>
       </div>
@@ -528,6 +587,72 @@ export default function StudioProfilePage() {
             <Button variant="ghost" onClick={() => setIsCollabModalOpen(false)} disabled={collaborationState === 'loading'}>Cancel</Button>
             <Button onClick={submitCollaboration} disabled={collaborationState === 'loading'}>Submit</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!activeRequest} onOpenChange={(open) => !open && setActiveRequest(null)}>
+        <DialogContent className="sm:max-w-[560px] rounded-3xl border border-[#ECECEC] bg-[#F9F9F9]">
+          {activeRequest && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Manage Collaboration Request</DialogTitle>
+                <DialogDescription>Review request details and update workflow status.</DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-2">
+                <div className="rounded-xl border border-[#ECECEC] bg-white p-4">
+                  <p className="text-[14px] font-semibold text-foreground">{activeRequest.project}</p>
+                  <p className="mt-2 text-[12px] text-muted-foreground">{activeRequest.note || 'No note provided.'}</p>
+                  <p className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <CalendarBlank className="size-3.5" />
+                    Created {new Date(activeRequest.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-[12px]">Status</Label>
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    {(['pending', 'in-review', 'accepted'] as const).map((status) => {
+                      const isSelected = manageStatus === status;
+                      const label = status === 'in-review' ? 'In Review' : status === 'accepted' ? 'Accepted' : 'Pending';
+
+                      return (
+                        <Button
+                          key={status}
+                          type="button"
+                          variant="outline"
+                          className={cn(
+                            'h-9 rounded-xl border-[#ECECEC] bg-white text-[11px] capitalize',
+                            isSelected && 'border-[#D61D1F]/40 bg-[#D61D1F]/5 text-[#D61D1F]',
+                          )}
+                          onClick={() => setManageStatus(status)}
+                        >
+                          {label}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between">
+                <Button
+                  variant="outline"
+                  className="h-9 rounded-xl border-[#ECECEC] bg-white text-[11px] text-destructive"
+                  onClick={() => setCancelCandidate(activeRequest)}
+                >
+                  Withdraw Request
+                </Button>
+                <Button
+                  className="h-9 rounded-xl bg-[#D61D1F] text-[11px] text-white hover:bg-[#D61D1F]/90"
+                  onClick={saveRequestStatus}
+                  disabled={manageStatus === activeRequest.status}
+                >
+                  Save Changes
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 

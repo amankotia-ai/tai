@@ -71,6 +71,8 @@ interface ChatMessage extends Message {
 }
 
 type NewChatContactSource = 'recent' | 'connect';
+type NewChatSourceFilter = 'all' | NewChatContactSource;
+type NewChatTypeFilter = 'all' | 'actor' | 'studio' | 'agency';
 
 interface NewChatContact {
   id: string;
@@ -81,6 +83,19 @@ interface NewChatContact {
   source: NewChatContactSource;
   conversationId?: string;
 }
+
+const NEW_CHAT_SOURCE_FILTERS: { id: NewChatSourceFilter; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'connect', label: 'Connects' },
+  { id: 'recent', label: 'Recent' },
+];
+
+const NEW_CHAT_TYPE_FILTERS: { id: NewChatTypeFilter; label: string }[] = [
+  { id: 'all', label: 'All types' },
+  { id: 'actor', label: 'Actors' },
+  { id: 'studio', label: 'Studios' },
+  { id: 'agency', label: 'Agencies' },
+];
 
 const SECURE_ATTACHMENT_PRESETS: Record<SecureFileType, Omit<SecureAttachment, 'type'>> = {
   script: { name: 'Scene_40_Rewrite.pdf', size: '1.8 MB' },
@@ -478,7 +493,7 @@ function NewChatContactItem({
     <button
       type="button"
       onClick={() => onSelect(contact)}
-      className="flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-left transition-colors hover:border-[#ECECEC] hover:bg-[#FAFAFA]"
+      className="group flex w-full items-center gap-3 rounded-2xl border border-[#ECECEC] bg-white px-3 py-3 text-left transition-colors hover:border-[#DCE7FF] hover:bg-[#F8FAFF]"
     >
       {contact.avatar ? (
         <img
@@ -493,15 +508,24 @@ function NewChatContactItem({
       )}
 
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-2">
           <p className="truncate text-[13px] font-semibold text-foreground">{contact.name}</p>
-          {contact.source === 'connect' && (
-            <span className="rounded-md bg-[#EDF3FF] px-1.5 py-0.5 text-[10px] font-medium text-[#0052FF]">
-              Connect
-            </span>
-          )}
+          <CaretRight className="size-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5" weight="bold" />
         </div>
         <p className="line-clamp-1 text-pretty text-[11px] text-muted-foreground">{contact.role}</p>
+        <div className="mt-1.5 flex items-center gap-1.5">
+          <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+            {formatParticipantTypeLabel(contact.type)}
+          </span>
+          <span className={cn(
+            'rounded-md px-1.5 py-0.5 text-[10px] font-medium',
+            contact.source === 'connect'
+              ? 'bg-[#EDF3FF] text-[#0052FF]'
+              : 'bg-amber-500/10 text-amber-700',
+          )}>
+            {contact.source === 'connect' ? 'Connect' : 'Recent'}
+          </span>
+        </div>
       </div>
     </button>
   );
@@ -651,6 +675,8 @@ export default function ChatPage() {
   const [selectedReferencedAsset, setSelectedReferencedAsset] = useState<ReferencedAsset | null>(null);
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [newChatQuery, setNewChatQuery] = useState('');
+  const [newChatSourceFilter, setNewChatSourceFilter] = useState<NewChatSourceFilter>('all');
+  const [newChatTypeFilter, setNewChatTypeFilter] = useState<NewChatTypeFilter>('all');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const realtimeTimersRef = useRef<number[]>([]);
 
@@ -795,9 +821,25 @@ export default function ChatPage() {
     );
   };
 
-  const filteredRecentContacts = recentContacts.filter(matchesContactQuery);
-  const filteredConnectContacts = connectContacts.filter(matchesContactQuery);
+  const matchesNewChatFilters = (contact: NewChatContact) => {
+    if (newChatSourceFilter !== 'all' && contact.source !== newChatSourceFilter) return false;
+    if (newChatTypeFilter !== 'all' && contact.type !== newChatTypeFilter) return false;
+    return true;
+  };
+
+  const filteredRecentContacts = recentContacts.filter((contact) => (
+    matchesContactQuery(contact) && matchesNewChatFilters(contact)
+  ));
+  const filteredConnectContacts = connectContacts.filter((contact) => (
+    matchesContactQuery(contact) && matchesNewChatFilters(contact)
+  ));
   const hasNewChatResults = filteredRecentContacts.length > 0 || filteredConnectContacts.length > 0;
+  const newChatResultCount = filteredRecentContacts.length + filteredConnectContacts.length;
+  const newChatTotalCount = recentContacts.length + connectContacts.length;
+  const allNewChatContacts = [...recentContacts, ...connectContacts];
+  const actorContactCount = allNewChatContacts.filter((contact) => contact.type === 'actor').length;
+  const studioContactCount = allNewChatContacts.filter((contact) => contact.type === 'studio').length;
+  const agencyContactCount = allNewChatContacts.filter((contact) => contact.type === 'agency').length;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView();
@@ -919,6 +961,8 @@ export default function ChatPage() {
 
     setThreadSearchQuery('');
     setNewChatQuery('');
+    setNewChatSourceFilter('all');
+    setNewChatTypeFilter('all');
     setNewChatOpen(false);
   };
 
@@ -981,20 +1025,6 @@ export default function ChatPage() {
       navContentClassName="mx-auto w-[85%]"
     >
       <div className="mx-auto flex h-[calc(100dvh-6.5rem)] w-[85%] gap-6 overflow-hidden">
-        <div className="hide-scrollbar hidden h-full w-72 flex-shrink-0 overflow-y-auto pb-6 lg:block">
-          <ChatOverviewCard
-            totalUnread={totalUnread}
-            requestCount={requestCount}
-            conversationCount={nonArchivedCount}
-            archivedCount={archivedCount}
-            realtimeState={realtimeState}
-            conversations={conversations.filter((conversation) => !isConversationArchived(conversation.id))}
-            onOpenNewChat={() => setNewChatOpen(true)}
-            onOpenRequests={handleOpenRequests}
-            onSelectConversation={handleSelectConversationFromOverview}
-          />
-        </div>
-
         <div className="flex h-full min-w-0 flex-1 overflow-hidden">
           <Card className="flex h-full w-full overflow-hidden rounded-3xl border border-[#ECECEC] bg-white">
             <div className="flex h-full w-full">
@@ -1076,35 +1106,6 @@ export default function ChatPage() {
                     </button>
                   </div>
 
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-7 rounded-lg border-[#ECECEC] text-[10px]"
-                      onClick={() => setRealtimeState('offline')}
-                    >
-                      Simulate Offline
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-7 rounded-lg border-[#ECECEC] text-[10px]"
-                      onClick={() => setRealtimeState('error')}
-                    >
-                      Simulate Error
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-7 rounded-lg border-[#ECECEC] text-[10px]"
-                      onClick={retryRealtimeConnection}
-                    >
-                      Reconnect
-                    </Button>
-                  </div>
                 </div>
 
                 <ScrollArea className="flex-1 px-3 py-3">
@@ -1411,7 +1412,7 @@ export default function ChatPage() {
                     </div>
                     <h3 className="text-balance text-[18px] font-semibold text-foreground">Welcome to Messages</h3>
                     <p className="mt-2 max-w-md text-pretty text-[13px] text-muted-foreground">
-                      Select a conversation from the sidebar to start messaging with actors, studios, and agencies.
+                      Select a conversation from the list to start messaging with actors, studios, and agencies.
                     </p>
                   </div>
                 )}
@@ -1427,68 +1428,165 @@ export default function ChatPage() {
           setNewChatOpen(open);
           if (!open) {
             setNewChatQuery('');
+            setNewChatSourceFilter('all');
+            setNewChatTypeFilter('all');
           }
         }}
       >
-        <DialogContent className="rounded-3xl border border-[#ECECEC] bg-[#F9F9F9] p-0 sm:max-w-[520px]">
+        <DialogContent className="overflow-hidden rounded-3xl border border-[#ECECEC] bg-[#F9F9F9] p-0 sm:max-w-[760px]">
           <DialogHeader className="border-b border-[#ECECEC] px-6 py-5">
-            <DialogTitle className="text-balance text-[18px] text-foreground">Start New Chat</DialogTitle>
-            <DialogDescription className="text-pretty text-[12px] text-muted-foreground">
-              Search people from your network. Connects are shown here for quick chat creation.
-            </DialogDescription>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <DialogTitle className="text-balance text-[18px] text-foreground">Start New Chat</DialogTitle>
+                <DialogDescription className="mt-1 text-pretty text-[12px] text-muted-foreground">
+                  Search by name or role, apply filters, and jump directly into a secure thread.
+                </DialogDescription>
+              </div>
+
+              <div className="hidden items-center gap-2 sm:flex">
+                <div className="rounded-xl border border-[#ECECEC] bg-white px-3 py-2">
+                  <p className="font-inter-numeric text-[14px] font-semibold text-foreground">{newChatTotalCount}</p>
+                  <p className="text-[10px] text-muted-foreground">Available</p>
+                </div>
+                <div className="rounded-xl border border-[#ECECEC] bg-white px-3 py-2">
+                  <p className="font-inter-numeric text-[14px] font-semibold text-foreground">{newChatResultCount}</p>
+                  <p className="text-[10px] text-muted-foreground">Shown</p>
+                </div>
+              </div>
+            </div>
           </DialogHeader>
 
-          <div className="px-6 pb-6 pt-4">
-            <div className="relative">
-              <MagnifyingGlass className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search by name or role..."
-                value={newChatQuery}
-                onChange={(event) => setNewChatQuery(event.target.value)}
-                className="h-10 rounded-xl border-[#ECECEC] bg-white pl-9 text-[13px] focus-visible:ring-[#0052FF]/30"
-              />
-            </div>
-
-            <ScrollArea className="mt-4 h-80 pr-1">
-              <div className="space-y-4">
-                {filteredConnectContacts.length > 0 && (
-                  <section>
-                    <p className="mb-2 text-[12px] font-semibold text-foreground">Connects</p>
-                    <div className="space-y-1">
-                      {filteredConnectContacts.map((contact) => (
-                        <NewChatContactItem key={contact.id} contact={contact} onSelect={handleStartConversation} />
-                      ))}
-                    </div>
-                  </section>
-                )}
-
-                {filteredRecentContacts.length > 0 && (
-                  <section>
-                    <p className="mb-2 text-[12px] font-semibold text-foreground">Recent</p>
-                    <div className="space-y-1">
-                      {filteredRecentContacts.map((contact) => (
-                        <NewChatContactItem key={contact.id} contact={contact} onSelect={handleStartConversation} />
-                      ))}
-                    </div>
-                  </section>
-                )}
-
-                {!hasNewChatResults && (
-                  <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#ECECEC] bg-white py-12 text-center">
-                    <p className="text-pretty text-[13px] text-muted-foreground">No matching people found.</p>
-                    <Button
+          <div className="grid gap-4 px-5 pb-5 pt-4 md:grid-cols-[220px_minmax(0,1fr)] md:px-6 md:pb-6">
+            <aside className="space-y-3">
+              <div className="rounded-2xl border border-[#ECECEC] bg-white p-3">
+                <p className="text-[11px] font-semibold uppercase text-muted-foreground">Scope</p>
+                <div className="mt-2 space-y-1.5">
+                  {NEW_CHAT_SOURCE_FILTERS.map((filter) => (
+                    <button
+                      key={filter.id}
                       type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setNewChatQuery('')}
-                      className="mt-3 h-8 rounded-lg border-[#ECECEC] px-3 text-[12px] hover:bg-[#FAFAFA]"
+                      onClick={() => setNewChatSourceFilter(filter.id)}
+                      className={cn(
+                        'flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-[12px] font-medium transition-colors',
+                        newChatSourceFilter === filter.id
+                          ? 'bg-[#EDF3FF] text-[#0052FF]'
+                          : 'text-muted-foreground hover:bg-[#F7F7F7] hover:text-foreground',
+                      )}
                     >
-                      Clear search
-                    </Button>
-                  </div>
-                )}
+                      <span>{filter.label}</span>
+                      {newChatSourceFilter === filter.id && <span className="size-1.5 rounded-full bg-[#0052FF]" />}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </ScrollArea>
+
+              <div className="rounded-2xl border border-[#ECECEC] bg-white p-3">
+                <p className="text-[11px] font-semibold uppercase text-muted-foreground">People Mix</p>
+                <div className="mt-2 space-y-1.5">
+                  <div className="flex items-center justify-between rounded-lg bg-[#FAFAFA] px-2.5 py-1.5">
+                    <div className="flex items-center gap-1.5 text-[11px] text-foreground">
+                      <UserCircle className="size-3.5 text-muted-foreground" weight="fill" />
+                      Actors
+                    </div>
+                    <span className="font-inter-numeric text-[11px] text-muted-foreground">{actorContactCount}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg bg-[#FAFAFA] px-2.5 py-1.5">
+                    <div className="flex items-center gap-1.5 text-[11px] text-foreground">
+                      <Buildings className="size-3.5 text-muted-foreground" weight="fill" />
+                      Studios
+                    </div>
+                    <span className="font-inter-numeric text-[11px] text-muted-foreground">{studioContactCount}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg bg-[#FAFAFA] px-2.5 py-1.5">
+                    <div className="flex items-center gap-1.5 text-[11px] text-foreground">
+                      <Briefcase className="size-3.5 text-muted-foreground" weight="fill" />
+                      Agencies
+                    </div>
+                    <span className="font-inter-numeric text-[11px] text-muted-foreground">{agencyContactCount}</span>
+                  </div>
+                </div>
+              </div>
+            </aside>
+
+            <section className="min-w-0">
+              <div className="relative">
+                <MagnifyingGlass className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name or role..."
+                  value={newChatQuery}
+                  onChange={(event) => setNewChatQuery(event.target.value)}
+                  className="h-10 rounded-xl border-[#ECECEC] bg-white pl-9 text-[13px] focus-visible:ring-[#0052FF]/30"
+                />
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {NEW_CHAT_TYPE_FILTERS.map((filter) => (
+                  <button
+                    key={filter.id}
+                    type="button"
+                    onClick={() => setNewChatTypeFilter(filter.id)}
+                    className={cn(
+                      'rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors',
+                      newChatTypeFilter === filter.id
+                        ? 'border-[#DCE7FF] bg-[#EDF3FF] text-[#0052FF]'
+                        : 'border-[#ECECEC] bg-white text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+
+              <p className="mt-3 text-[11px] text-muted-foreground">
+                Showing <span className="font-inter-numeric">{newChatResultCount}</span> of{' '}
+                <span className="font-inter-numeric">{newChatTotalCount}</span> available contacts.
+              </p>
+
+              <ScrollArea className="mt-3 h-[22rem] pr-1">
+                <div className="space-y-4 pb-1">
+                  {filteredConnectContacts.length > 0 && (
+                    <section>
+                      <p className="mb-2 text-[12px] font-semibold text-foreground">Connects</p>
+                      <div className="space-y-2">
+                        {filteredConnectContacts.map((contact) => (
+                          <NewChatContactItem key={contact.id} contact={contact} onSelect={handleStartConversation} />
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {filteredRecentContacts.length > 0 && (
+                    <section>
+                      <p className="mb-2 text-[12px] font-semibold text-foreground">Recent</p>
+                      <div className="space-y-2">
+                        {filteredRecentContacts.map((contact) => (
+                          <NewChatContactItem key={contact.id} contact={contact} onSelect={handleStartConversation} />
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {!hasNewChatResults && (
+                    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#ECECEC] bg-white px-4 py-12 text-center">
+                      <p className="text-pretty text-[13px] text-muted-foreground">No matching people found for this query.</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setNewChatQuery('');
+                          setNewChatSourceFilter('all');
+                          setNewChatTypeFilter('all');
+                        }}
+                        className="mt-3 h-8 rounded-lg border-[#ECECEC] px-3 text-[12px] hover:bg-[#FAFAFA]"
+                      >
+                        Clear all filters
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </section>
           </div>
         </DialogContent>
       </Dialog>

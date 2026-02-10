@@ -260,29 +260,33 @@ function ActorVisitorSidebar({
 function VisitorTrustRail({
   activeRequests,
   profileCompletion,
+  showProfileStrength = true,
 }: {
   activeRequests: number;
   profileCompletion: number;
+  showProfileStrength?: boolean;
 }) {
   return (
     <>
-      <Card className="rounded-3xl border border-[#ECECEC] bg-white p-5">
-        <h3 className="text-[13px] font-semibold text-foreground">Profile Strength</h3>
-        <div className="mt-2 h-2 rounded-full bg-muted">
-          <div className="h-2 rounded-full bg-[#D61D1F]" style={{ width: `${profileCompletion}%` }} />
-        </div>
-        <div className="mt-4 divide-y divide-dashed divide-[#ECECEC] text-[11px] text-muted-foreground">
-          <div className="flex items-center gap-2 py-2">
-            <CheckCircle className="size-4 text-emerald-600" weight="fill" /> Visible in discover search
+      {showProfileStrength && (
+        <Card className="rounded-3xl border border-[#ECECEC] bg-white p-5">
+          <h3 className="text-[13px] font-semibold text-foreground">Profile Strength</h3>
+          <div className="mt-2 h-2 rounded-full bg-muted">
+            <div className="h-2 rounded-full bg-[#D61D1F]" style={{ width: `${profileCompletion}%` }} />
           </div>
-          <div className="flex items-center gap-2 py-2">
-            <ShieldCheck className="size-4 text-emerald-600" weight="fill" /> Cast ID verified profile
+          <div className="mt-4 divide-y divide-dashed divide-[#ECECEC] text-[11px] text-muted-foreground">
+            <div className="flex items-center gap-2 py-2">
+              <CheckCircle className="size-4 text-emerald-600" weight="fill" /> Visible in discover search
+            </div>
+            <div className="flex items-center gap-2 py-2">
+              <ShieldCheck className="size-4 text-emerald-600" weight="fill" /> Cast ID verified profile
+            </div>
+            <div className="flex items-center gap-2 py-2">
+              <CalendarBlank className="size-4" /> Updated Jan 19, 2026
+            </div>
           </div>
-          <div className="flex items-center gap-2 py-2">
-            <CalendarBlank className="size-4" /> Updated Jan 19, 2026
-          </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
       <Card className="rounded-3xl border border-[#ECECEC] bg-white p-5">
         <h3 className="text-[13px] font-semibold text-foreground">Access Requests</h3>
@@ -301,13 +305,15 @@ export default function ActorProfilePage() {
   const navigate = useNavigate();
   const actor = mockActors.find((entry) => entry.id === id);
   const fallbackSearchPath = location.pathname.startsWith('/dashboard') ? '/dashboard/search' : '/search';
-  const backToSearchPath =
+  const fromSearchPath =
     typeof location.state === 'object' &&
     location.state !== null &&
     'fromSearch' in location.state &&
     typeof (location.state as { fromSearch?: unknown }).fromSearch === 'string'
       ? (location.state as { fromSearch: string }).fromSearch
-      : fallbackSearchPath;
+      : null;
+  const backToSearchPath = fromSearchPath ?? fallbackSearchPath;
+  const showProfileStrength = fromSearchPath === null;
 
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [requestState, setRequestState] = useState<RequestState>('idle');
@@ -501,7 +507,11 @@ export default function ActorProfilePage() {
                 rateRange={actor.rateRange}
                 onOpenRequest={() => setIsRequestModalOpen(true)}
               />
-              <VisitorTrustRail activeRequests={requestLifecycle.length} profileCompletion={PROFILE_COMPLETION} />
+              <VisitorTrustRail
+                activeRequests={requestLifecycle.length}
+                profileCompletion={PROFILE_COMPLETION}
+                showProfileStrength={showProfileStrength}
+              />
             </div>
 
             <div className="space-y-4 lg:mt-0">
@@ -698,7 +708,11 @@ export default function ActorProfilePage() {
           </div>
 
           <div className="hide-scrollbar hidden h-full w-72 flex-shrink-0 space-y-4 overflow-y-auto pb-6 xl:block">
-            <VisitorTrustRail activeRequests={requestLifecycle.length} profileCompletion={PROFILE_COMPLETION} />
+            <VisitorTrustRail
+              activeRequests={requestLifecycle.length}
+              profileCompletion={PROFILE_COMPLETION}
+              showProfileStrength={showProfileStrength}
+            />
           </div>
         </div>
       </div>
